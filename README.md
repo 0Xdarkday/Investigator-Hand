@@ -14,7 +14,9 @@ The map organizes event codes into distinct categories, such as
 - Buffer Overflow Detection
 - lateral movement Detection
 - DCSync Activity Detection
-- DCSync Activity Detection
+- Golden Ticket Detection
+- Pass-the-Hash (PtH) Attack Detection
+- Pass-the-Ticket (PtT) Attack Detection
 
 
  - Windows Registry: The Windows Registry is a hierarchical database that stores low-level settings for the operating system and applications. It is a critical component in managing system configurations, user preferences, and operational details such as files, folders, user profiles, and network settings. The Registry is divided into multiple root keys that contain numerous subkeys, values, and data used by Windows to manage both hardware and software , This Registry map provides a visual and organized representation of important registry locations, categorized based on their relevance to files, folders, users, system, and network configurations. By understanding these key registry paths, administrators and cybersecurity professionals can efficiently monitor, investigate, and secure critical aspects of the system.
