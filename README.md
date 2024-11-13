@@ -51,6 +51,7 @@ Each section in the map highlights critical registry keys that can be used for s
     - Lateral Movement Detection
     - Registry-based Persistence Detection
     - Timeline Creation
+      
 - system investigation with PowerShell Notes
     - System Information and Metadata Collection
     - User Activity and Login Tracking
@@ -63,6 +64,7 @@ Each section in the map highlights critical registry keys that can be used for s
     - Evidence Collection
     - Malware Detection and Analysis
     - File Integrity Verification
+      
 - registry Forensics with Regripper Notes
     - Startup and Persistence Plugins
     - User Activity
@@ -76,6 +78,7 @@ Each section in the map highlights critical registry keys that can be used for s
     -  USB and Device History
     -  Scheduled Tasks and Job Settings
     -  Miscellaneous Plugins
+      
  - important registry Forensics aspects
     - SAM (Security Account Manager)
     - SYSTEM
@@ -84,11 +87,13 @@ Each section in the map highlights critical registry keys that can be used for s
     - SECURITY
     - SOFTWARE
     - Browser Artifacts
+      
 - Prefetch Files
     - Program Execution Evidence: Indicates whether a specific application, possibly malware, was executed
     - Timeline and Frequency of Access: Provides timestamps to help in event reconstruction and understanding user or malware behavior
     - Resource and Dependency Analysis: Lists DLLs and files accessed by an application, useful for dependency tracking and spotting suspicious resources
     - Indicating Persistence and Malware Activity: Unusual executables in prefetch files or executables running from non-standard paths may indicate malware or persistence techniques.
+      
  - Network Forensics with Wireshark
     - IP Filters
     - Port-Based Filters
@@ -100,4 +105,22 @@ Each section in the map highlights critical registry keys that can be used for s
     - Kerberos Traffic
     - LDAP Traffic (Active Directory)    
 
-  
+- Splunk Filters
+    - List All Indexes
+    - Identify Available Sourcetypes
+    - Explore the Fields in Your Data
+    - List Data Sources by Host
+    - Network Connections
+    - Identifying Brute Force Attacks
+    - Detecting File Uploads
+    - LOGON activity
+    - Detect Changes to High-Value Accounts
+    - Privilege Escalation Detection
+    - Monitoring Malicious File Execution
+    - Scheduled Task
+    - Persistence Registry Detection
+    - PowerShell Detection
+    - Lateral Movement & Pivot Detection
+    - Golden Ticket Attack Detection
+    - Kerberoasting Attack Detection
+    -  
