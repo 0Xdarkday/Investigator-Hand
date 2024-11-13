@@ -35,7 +35,7 @@ Each section in the map highlights critical registry keys that can be used for s
 - This part contains detailed notes and command references for tools and techniques used in digital forensics and incident response. The notes focus on memory analysis with Volatility & network forensics with wireshark & system investigation with PowerShell & registry Forensics with regripper & important registry Forensics aspects shuch as NTUSER - USERCLASS - Browser Artifacts , It includes essential tools and guides for analyzing registry files, network traffic, and prefetch files, and memory analysis with a focus on threat indicators and patterns that can assist in tracing attacker actions and understanding system activities. Each section provides specific filters and paths useful in various forensic contexts. covering various areas essential for incident responders and forensic analysts.
 
 ### Contents
-- Volatility Notes
+- momery Forensics Volatility Notes
     - Process Analysis
     - DLL & Handle Analysis
     - File & Registry Analysis
@@ -51,5 +51,53 @@ Each section in the map highlights critical registry keys that can be used for s
     - Lateral Movement Detection
     - Registry-based Persistence Detection
     - Timeline Creation
+- system investigation with PowerShell Notes
+    - System Information and Metadata Collection
+    - User Activity and Login Tracking
+    - Network Information
+    - Process and Service Monitoring
+    - Inspecting Loaded Modules and DLLs
+    - File System and Registry Analysis
+    - Event Log Analysis
+    - Browser and Internet Activity
+    - Evidence Collection
+    - Malware Detection and Analysis
+    - File Integrity Verification
+- registry Forensics with Regripper Notes
+    - Startup and Persistence Plugins
+    - User Activity
+    - Networking Plugins
+    - Malware Indicators
+    - System Information Plugins
+    - Registry Usage and Last Access
+    - Browser History and Internet Activity
+    -  File Access and Recent Documents
+    -  Security and Logon Information
+    -  USB and Device History
+    -  Scheduled Tasks and Job Settings
+    -  Miscellaneous Plugins
+ - important registry Forensics aspects
+    - SAM (Security Account Manager)
+    - SYSTEM
+    - NTUSER
+    - USERCLASS
+    - SECURITY
+    - SOFTWARE
+    - Browser Artifacts
+- Prefetch Files
+    - Program Execution Evidence: Indicates whether a specific application, possibly malware, was executed
+    - Timeline and Frequency of Access: Provides timestamps to help in event reconstruction and understanding user or malware behavior
+    - Resource and Dependency Analysis: Lists DLLs and files accessed by an application, useful for dependency tracking and spotting suspicious resources
+    - Indicating Persistence and Malware Activity: Unusual executables in prefetch files or executables running from non-standard paths may indicate malware or persistence techniques.
+ - Network Forensics with Wireshark
+    - IP Filters
+    - Port-Based Filters
+    - Protocol-Specific Filters
+    - Malicious Traffic Indicators
+    - Analyzing Payloads and Content
+    - searching for specific file
+    - Detecting Anomalous Connections
+    - Kerberos Traffic
+    - LDAP Traffic (Active Directory)    
 
   
