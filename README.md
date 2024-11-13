@@ -29,3 +29,27 @@ This map is divided into the following categories:
 - User Information: Manages user profiles, last logon details, and user-specific settings.
 
 Each section in the map highlights critical registry keys that can be used for system analysis, troubleshooting, and forensic investigations, helping to maintain control over system behavior and security.
+
+## introduction to Digital Forensics and Incident Response Notes 
+
+- This part contains detailed notes and command references for tools and techniques used in digital forensics and incident response. The notes focus on memory analysis with Volatility & network forensics with wireshark & system investigation with PowerShell & registry Forensics with regripper & important registry Forensics aspects shuch as NTUSER - USERCLASS - Browser Artifacts , It includes essential tools and guides for analyzing registry files, network traffic, and prefetch files, and memory analysis with a focus on threat indicators and patterns that can assist in tracing attacker actions and understanding system activities. Each section provides specific filters and paths useful in various forensic contexts. covering various areas essential for incident responders and forensic analysts.
+
+### Contents
+- Volatility Notes
+    - Process Analysis
+    - DLL & Handle Analysis
+    - File & Registry Analysis
+    - Network Analysis
+    - User & Session Information
+    - Memory Dumps
+    - Module & Driver Analysis
+    - Malware & Anomaly Detection
+    - Miscellaneous
+    - Memory Dumping & Extraction
+    - Memory Artifacts
+    - Event Log Extraction
+    - Lateral Movement Detection
+    - Registry-based Persistence Detection
+    - Timeline Creation
+
+  
