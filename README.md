@@ -123,4 +123,4 @@ Each section in the map highlights critical registry keys that can be used for s
     - Lateral Movement & Pivot Detection
     - Golden Ticket Attack Detection
     - Kerberoasting Attack Detection
-    -  
+       
