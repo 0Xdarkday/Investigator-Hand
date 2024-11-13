@@ -1,6 +1,5 @@
 imageinfo
 windows.malfind
--o mem_dump - dump  - pid 880
 windows.handles — pid 880 | grep -i file
 What is the name of the injected dll file loaded from the recent process?
 windows.ldrmodules — pid 880
@@ -11,7 +10,6 @@ Dumping the Memory of the Suspicious Process (Equivalent of memdump)
 Once you’ve identified the process ID (PID) where the beacon is located, you can dump the memory of that process:
 vol.py -f <memory image>     windows.dumpfiles --pid <PID> --dump-dir .
 
-      mftscan.MFTScan:  to see the file creation
 ------------------------------------------------------------------------------------------------------
 1. Process Analysis
 
@@ -40,6 +38,7 @@ ldrmodules: Helps in detecting hidden or unlinked DLLs loaded in a process
     printkey: Displays the contents of a registry key.
     regscan: Scans for registry objects in memory.
     dumpregistry: Extracts registry hives to disk.
+    mftscan.MFTScan:  to see the file creation
 
 vol.py -f <memory image>  windows.dumpregistry --dump-dir /path/to/dump
 
@@ -123,7 +122,7 @@ Dumping a Process :
     vadtree: Displays virtual memory allocations in a tree structure.
     vaddump: Dumps the virtual address space of a process
 
-vol.py -f  <memory image>  vaddump --pid 1234 -D output
+vol.py -f  <memory image>  windows.vaddump --pid 1234 -D output
 -----------------------------------------------------------------------------------------------------
 Extracting Event Logs:
     evtlogs: plugin allows you to extract and analyze Windows Event Logs from memory dumps
