@@ -1,0 +1,136 @@
+Get-Content .\memory.dmp | Select-String "\.iso$" : extract all the srings from imga then filetring for 
+------------------------------------------------------------------------------------------------------
+                                                      System Information and Metadata Collection
+   
+Get-SystemInfo: Retrieves detailed system information.
+Get-ComputerInfo : 
+Get-WmiObject -Class Win32_OperatingSystem : Gather information about the Operating System
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* : Retrieve Installed Software
+(Get-WmiObject -Class Win32_OperatingSystem).LastBootUpTime : Check System Boot Time
+
+------------------------------------------------------------------------------------------------------ 
+                                                              User Activity and Login Tracking
+quser : List Active User Sessions 
+Get-LocalUser : Retrieve Local User Accounts
+Get-EventLog -LogName Security | Where-Object {$_.EventID -eq 4624} : 
+
+------------------------------------------------------------------------------------------------------
+                                                                     Network Information
+
+Get-NetTCPConnection : List Active Network Connections
+Get-NetIPAddress : Retrieve IP Address Information 
+Get-SmbShare : List Active Network Shares 
+
+Get-NetTCPConnection | Where-Object { $_.RemoteAddress -notlike "127.*" -and $_.RemoteAddress -notlike "::1" } : List Only Foreign (External) Network Connections
+
+Get-NetTCPConnection | Where-Object { $_.RemotePort -eq 443 -or $_.RemoteAddress -match "^192\.168\." } : Filter Connections by Specific Port or IP Range
+
+Get-NetTCPConnection -State Established : Find Established Network Connections 
+
+------------------------------------------------------------------------------------------------------  
+                                                                    Process and Service Monitoring
+Get-Process : List Running Processes 
+Get-Process | Where-Object {$_.ProcessName -match "powershell|notepad"} : Filter Output from Commands
+Get-Service  :  List Installed Services 
+Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" : Query Startup Applications 
+
+Get-Process | ForEach-Object {
+    if ($_.CPU -gt 100) {
+        Write-Output "$($_.ProcessName) is using high CPU!"  
+    }
+}
+ 
+Get-Service | Where-Object { $_.Status -eq 'Running' } | ForEach-Object { $_.DisplayName } : Extract Information from Command Output (Pipeline Parsing)
+
+
+
+------------------------------------------------------------------------------------------------------
+                                                      Inspecting Loaded Modules and DLLs for Process Analysis
+
+Get-Process | ForEach-Object { $_.Modules | Select-Object -Property ModuleName, FileName } : List Loaded Modules for Each Process
+(Get-Process -Name "notepad").Modules | Select-Object ModuleName, FileName  :  Analyze DLLs Loaded by a Specific Process 
+------------------------------------------------------------------------------------------------------                                                                      File System and Registry Analysis    
+Get-PSDrive : Enumerate All Drives
+Get-ChildItem -Path C:\path\to\directory -Recurse : Retrieve Files in a Specific Directory 
+Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" : Query Registry Key for Persistence Mechanisms
+Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\BagMRU": Retrieve ShellBag Information (User File and Folder History)
+Get-ChildItem -Path "C:\Logs\" -Filter *.log | Select-String -Pattern "error|fail|attack"  : Search Across Log Files for Keywords
+
+Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" |
+Where-Object { $_.Property -match "cmd|powershell|vbs" }  : Searching within the Registry for Suspicious Keys 
+
+Get-ChildItem -Path HKLM:\ -Recurse | Get-ItemProperty -ErrorAction SilentlyContinue |
+Where-Object { $_.PSChildName -match "suspicious_keyword" } : Search for Specific String Across Registry Keys
+
+Get-Item "C:\path\to\file.txt" | Select-Object -Property Name, CreationTime, LastAccessTime, LastWriteTime  : Extracting Artifact Metadata from Files
+
+------------------------------------------------------------------------------------------------------                                                                         Event Log Analysis
+
+Get-EventLog -LogName Security : Retrieve Security Event Logs
+Get-WinEvent -LogName Security | Where-Object {$_.Id -eq 4624} : Filter Specific Event ID (e.g., Successful Logon)
+Get-EventLog -LogName Security | Export-Csv -Path C:\Logs\SecurityLog.csv : Export Event Logs for Analysis 
+Get-ChildItem -Path "C:\Logs" -Filter *.log | Select-String -Pattern "error|login failure" |
+Out-File -FilePath "C:\Forensics\matching_logs.txt"  : Log Matching Results to a File
+
+
+------------------------------------------------------------------------------------------------------                                                                   Browser and Internet Activity 
+
+Get-Item -Path "HKCU:\Software\Microsoft\Internet Explorer\TypedURLs": Retrieve Browser History for Edge/IE 
+ipconfig /displaydns : Retrieve DNS Cache 
+
+------------------------------------------------------------------------------------------------------                                                                        Collecting Evidence
+
+Get-WmiObject -Class Win32_PhysicalMemory : Take a Snapshot of Memory Information 
+Get-ChildItem Env :  Retrieve System Environment Variables
+(Get-PSReadLineOption).HistorySavePath : Dump All Available PowerShell History 
+
+------------------------------------------------------------------------------------------------------
+                                                                  Malware Detection and Analysis
+
+Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" : List Autoruns for Persistence Detection 
+Get-ScheduledTask | Select-Object TaskName,TaskPath,State : List All Scheduled Tasks 
+Get-WmiObject -Class Win32_Service | Where-Object { $_.StartMode -eq 'Auto' -and $_.State -ne 'Running' } : Check for Hidden Services or Processes
+
+------------------------------------------------------------------------------------------------------
+                                                             Using Hashing for File Integrity Verification
+
+Get-FileHash -Algorithm SHA256 -Path "C:\path\to\file" : Compute File Hash 
+
+$hash1 = Get-FileHash -Path "C:\path\to\original_file"
+$hash2 = Get-FileHash -Path "C:\path\to\new_file"                               : Compare Hashes Across Files for Tampering Detection
+if ($hash1.Hash -ne $hash2.Hash) { Write-Output "Files differ!" }
+
+------------------------------------------------------------------------------------------------------  
+                                                           Using WMI and CIM for Deeper System Insights
+
+Get-CimInstance -ClassName Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn  : Query Installed Hotfixes and Patches
+Get-CimInstance -ClassName Win32_BIOS | Format-List -Property * : Inspect BIOS Information
+Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property LastBootUpTime, LocalDateTime  : Check System Startup and Shutdown History
+
+------------------------------------------------------------------------------------------------------  
+                                                         Forensic Triage with Custom Functions
+
+function Get-RecentlyModifiedFiles {
+    param([string]$path, [int]$days)
+    Get-ChildItem -Path $path -Recurse | Where-Object {
+        $_.LastWriteTime -gt (Get-Date).AddDays(-$days)            : Function to Identify Recently Modified Files
+    }
+}
+Get-RecentlyModifiedFiles -path "C:\Forensics" -days 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
