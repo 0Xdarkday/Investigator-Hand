@@ -1,0 +1,93 @@
+1.Startup and Persistence Plugins
+    run: Parses the Run key to show programs that are configured to start automatically for the user.
+    runonce: Similar to run, but shows programs that run only once at startup.
+    services: Extracts information from the Services key, which contains services that might be used for persistence.
+    winlogon: Examines the Winlogon key for programs that may execute during the logon process.
+    drivers: Checks for drivers that load automatically, as malicious drivers may be used for persistence.
+
+------------------------------------------------------------------------------------------------------
+2. User Activity
+
+   userassist: Retrieves the UserAssist keys, which show applications the user has recently run via the GUI.
+   muicache: Displays entries of programs recently executed by the user.
+   shellbags: Shows recently accessed folders and directory history, which can indicate where a user or malware navigated.
+   typedurls: Displays URLs typed into Internet Explorer’s address bar.
+   recentdocs: Lists recently accessed files.
+   recentapps: Shows recently run applications, which can reveal suspicious programs executed on the system.
+   lastvisitedmru: Displays the list of recently accessed network shares or remote files.
+   openwithlist: Shows applications recently used to open specific file types
+
+------------------------------------------------------------------------------------------------------
+3.Networking Plugins
+
+    networklist: Extracts data on networks the machine has connected to, useful for tracking IPs and locations.
+    mappeddrives: Shows mapped network drives, which might indicate connections to remote resources.
+    network: Examines various network settings, including wireless and recent connections.
+
+------------------------------------------------------------------------------------------------------
+4. Malware Indicators
+
+    shimcache: Analyzes the AppCompatCache (Shimcache), which tracks executables run on the system.
+    amcache: Parses Amcache.hve for entries of recently executed programs.
+    prefetch: Checks for prefetch data indicating previously run applications.
+    appcompatflags: Retrieves information from AppCompatFlags, which may contain compatibility settings for executed     applications.
+    msxml: Looks at MSXML versions and locations, which can sometimes be exploited by malware.
+
+------------------------------------------------------------------------------------------------------
+5. System Information Plugins
+
+    timezone: Provides timezone information of the machine, which can be useful for correlating event times.
+    computername: Shows the computer’s name.
+    profilelist: Displays user profiles on the machine, indicating all registered users.
+    networkcards: Lists network interface cards, which may reveal additional network information.
+    osversion: Shows the OS version and build number.
+------------------------------------------------------------------------------------------------------
+6. Registry Usage and Last Access
+
+    recentapps: Shows the recently used applications by the user.
+    lastloggedonuser: Shows the most recent user that logged onto the system.
+    lastlogontimestamp: Lists timestamps for users who last logged in, helping to track logon activity.
+    mountdev2: Reveals information about mounted devices, such as USB storage devices.
+    mountpoints2: Shows previously mounted devices and drive letters associated with them.
+------------------------------------------------------------------------------------------------------
+7. Browser History and Internet Activity
+
+    typedurls: Displays URLs typed into the address bar of Internet Explorer.
+    intcache: Checks the Internet Cache for records of visited websites and other cached internet data.
+    firefoxdownloads: Retrieves Firefox download history, useful for tracking file downloads.
+    firefoxrecentdocs: Displays Firefox’s recently accessed documents.
+------------------------------------------------------------------------------------------------------
+8. File Access and Recent Documents
+
+    recentdocs: Lists documents the user recently accessed, based on the RecentDocs key.
+    openwithprogids: Lists applications used to open specific files, which can help identify recently accessed files and their         associated applications.
+    openwithlist: Shows applications recently used to open files.
+
+------------------------------------------------------------------------------------------------------
+9. Security and Logon Information
+
+    lsa_secrets: Dumps LSA secrets, which might contain stored passwords or cached credentials.
+    logon: Displays information on user logons and failed logon attempts.
+    rdphint: Shows RDP (Remote Desktop Protocol) connection information, useful for identifying remote access attempts.
+    samparse: Parses the SAM hive to retrieve information about local accounts, including creation and last logon times.
+
+------------------------------------------------------------------------------------------------------
+10. USB and Device History
+
+    usb: Displays connected USB devices.
+    usbdevs: Lists devices connected via USB, along with information such as the first and last connection times.
+    mountdev: Lists mounted devices, which might reveal external storage used during the infection.
+
+------------------------------------------------------------------------------------------------------
+11. Scheduled Tasks and Job Settings
+
+    sptaskbar: Shows scheduled taskbar notifications, which may be used by malware to display alerts or execute tasks.
+    scheduledtasks: Lists scheduled tasks configured on the system, commonly used for persistence.
+
+------------------------------------------------------------------------------------------------------
+12. Miscellaneous Plugins
+
+    timezone: Extracts timezone settings, useful for forensic timelines.
+    sysinfo: General information about the system from multiple keys.
+    software: Parses software information, including installed programs and update details.
+    pendingfilerename: Shows files that are pending rename or deletion upon reboot.

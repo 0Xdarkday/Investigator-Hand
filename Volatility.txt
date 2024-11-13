@@ -1,0 +1,165 @@
+imageinfo
+windows.malfind
+-o mem_dump - dump  - pid 880
+windows.handles — pid 880 | grep -i file
+What is the name of the injected dll file loaded from the recent process?
+windows.ldrmodules — pid 880
+
+malfind: This plugin scans for malicious code injected into the memory space of legitimate processes
+vol.py -f  <memory image>   windows.malfind
+Dumping the Memory of the Suspicious Process (Equivalent of memdump)
+Once you’ve identified the process ID (PID) where the beacon is located, you can dump the memory of that process:
+vol.py -f <memory image>     windows.dumpfiles --pid <PID> --dump-dir .
+
+      mftscan.MFTScan:  to see the file creation
+------------------------------------------------------------------------------------------------------
+1. Process Analysis
+
+    pslist: Lists running processes.
+    pstree: Shows running processes in a tree structure.
+    psscan: Scans for process structures in memory.
+    pidhashtable: Retrieves processes using the PID hash table.
+    psenv: Displays the environment variables of a process.
+    cmdline: Displays the command line arguments for processes.
+
+------------------------------------------------------------------------------------------------------
+2. DLL & Handle Analysis
+
+    dlllist: Lists loaded DLLs for each process.
+    ldrmodules: Lists the loaded modules (DLLs) in a process's memory.
+    handles: Shows the open handles for each process.
+
+vol.py -f <memory image> windows.dlllist --pid <process_id>
+ldrmodules: Helps in detecting hidden or unlinked DLLs loaded in a process
+
+------------------------------------------------------------------------------------------------------
+3. File & Registry Analysis
+
+    filescan: Scans for file objects in memory.
+    dumpfiles: Extracts files from memory to disk.
+    printkey: Displays the contents of a registry key.
+    regscan: Scans for registry objects in memory.
+    dumpregistry: Extracts registry hives to disk.
+
+vol.py -f <memory image>  windows.dumpregistry --dump-dir /path/to/dump
+
+Listing Registry Hives:This will list the memory addresses and paths to the registry hives stored in the memory image
+vol.py -f  <memory image>     windows.registry.hivelist
+Extracting Specific Registry Key:
+vol.py -f  <memory image>     windows.registry.printkey --offset <hive_offset> --key "<registry_key_path>"
+
+------------------------------------------------------------------------------------------------------
+4. Network Analysis
+    connections: shows the connections.
+    netscan: Scans for network connections (both active and terminated).
+    connscan: Scans for network connections.
+    sockets: Lists active socket connections.
+------------------------------------------------------------------------------------------------------
+5. User & Session Information
+
+    getservicesids: Retrieves the SID (Security Identifier) of services.
+    sessions: Lists details about user sessions.
+    sockscan: Scans for socket objects.
+    prefetch:Check for indicators of recent execution
+------------------------------------------------------------------------------------------------------
+6. Memory Dumps
+
+    memmap: Displays the memory map of a process.
+    vaddump: Dumps the virtual address space of a process.
+    dumpfiles: Dumps the memory content
+
+Dump the PowerShell process memory:
+Once you've identified the PID of the PowerShell process, use the windows.memmap and windows.dumpfiles plugins to dump the memory of the process:
+     vol.py -f memory.mem windows.memmap --pid <PID>
+This command will display the memory-mapped regions of the PowerShell process. Afterward, use windows.dumpfiles to dump the memory content:
+     vol.py -f <memory image> windows.dumpfiles --pid <PID> --dump-dir .
+
+Run memmap to inspect the memory of the process.
+Use dumpfiles to dump the memory content of the PowerShell process
+
+Why Sequential Usage is Important:
+    Step 1 (windows.memmap) helps you understand and verify the memory structure of the process, ensuring that you're targeting the correct memory regions.
+    Step 2 (windows.dumpfiles) allows you to actually extract the process’s memory for deeper analysis (e.g., extracting Cobalt Strike beacons, malware, etc.)
+
+------------------------------------------------------------------------------------------------------
+7. Module & Driver Analysis
+
+    modules: Lists kernel modules (drivers) loaded in memory.
+    modscan: Scans for kernel modules in memory.
+    driverscan: Scans for driver objects in memory.
+------------------------------------------------------------------------------------------------------
+8. Malware & Anomaly Detection
+
+    malfind: Identifies potentially malicious code in process memory.
+    apihooks: Detects API hooks used by rootkits or malware.
+    mutantscan: Scans for mutexes in memory, often used in malware.
+    ssdt: Displays the System Service Descriptor Table (often altered by rootkits).
+    callbacks: Lists callback functions, which can be used by rootkits.
+    yarascan: Scans memory using YARA rules for malware detection.
+------------------------------------------------------------------------------------------------------
+9. Miscellaneous
+
+    windows.info: Shows basic information about the Windows memory image.
+    timeliner: Creates a timeline of activities from memory.
+    hibinfo: Extracts hibernation information.
+    verinfo: Shows the version information of the Windows kernel.
+------------------------------------------------------------------------------------------------------
+10. Memory Dumping & Extraction
+
+    procdump: Dumps the executable of a process from memory.
+    moddump: Extracts kernel modules.
+    vboxinfo: Extracts information from VirtualBox processes
+
+moddump: Dumps kernel modules (useful for malware analysis):
+    vol.py -f <memory image> windows.moddump --dump-dir /path/to/dump
+Dumping a Process : 
+    vol.py -f <memory image> windows.procdump --pid <process_id> --dump-dir /path/to/dump
+      --pid: Specifies the process ID to dump.
+      --dump-dir: Defines the directory where the dumped file will be saved.
+------------------------------------------------------------------------------------------------------
+11.Memory Artifacts
+
+    vadinfo: Lists the virtual address descriptors of a process.
+    vadtree: Displays virtual memory allocations in a tree structure.
+    vaddump: Dumps the virtual address space of a process
+
+vol.py -f  <memory image>  vaddump --pid 1234 -D output
+-----------------------------------------------------------------------------------------------------
+Extracting Event Logs:
+    evtlogs: plugin allows you to extract and analyze Windows Event Logs from memory dumps
+python3 vol.py -f <memory image>  windows.evtlogs
+
+------------------------------------------------------------------------------------------------------
+Detecting Lateral Movement: 
+    getsids: The plugin extracts SIDs assigned to each running process, allowing analysts to see the user accounts and groups 
+vol.py -f  <memory image>  windows.getsids
+
+Benfit:
+1-etecting Privilege Escalation: By examining SIDs, you can determine if a non-privileged process somehow gained privileged access, which may point to exploitation
+2-Identifying Suspicious Users or Accounts: If a process is running under an unexpected or malicious account, this may indicate that an attacker has used a compromised account
+3- Finding Malicious Processes: Attackers often inject or spawn processes under accounts with elevated privileges to remain hidden. getsids helps in identifying these processes
+------------------------------------------------------------------------------------------------------
+Registry-based persistence:
+     handles:dentifying registry keys that a process has opened, specifically looking for signs of persistence mechanisms.
+vol.py -f  <memory image>  windows.handles --pid < process PID > 
+
+ Common registry-based persistence keys to look for are:
+        HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+        HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+ For system startup:
+        HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce
+       HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run
+       HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+ For user logons:
+       HKCU\Software\Microsoft\Windows NT\CurrentVersion\Windows
+       HKCU\Software\Microsoft\Windows NT\CurrentVersion\Windows\Run
+       HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+       HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce
+------------------------------------------------------------------------------------------------------
+Create a Timeline: Use the timeliner plugin to extract a chronological sequence of events from the memory dump, helping you build a timeline of the attack or suspicious activities 
+vol.py -f <memory image> windows.timeliner --output-file timeline.csv
+
+command Line Usage
+You typically run Volatility 3 with the following structure:
+
+vol.py -f <memory image>  <plugin> --profile=<profile>

@@ -1,0 +1,134 @@
+                                                   SAM (Security Account Manager) - SAM.dat
+
+Location: C:\Windows\System32\config\SAM
+Purpose: Stores user account data, passwords (hashed), and other security-related information.
+Key Paths and Extractable Data:
+
+SAM\SAM\Domains\Account\Users\Names : Lists local user account names
+
+SAM\SAM\Domains\Account\Users\000001F4 : Information about the built-in administrator account, such as login attempts and account status 
+
+SAM\SAM\Domains\Account\Users\<User_RID> : Stores password hashes for each user 
+
+------------------------------------------------------------------------------------------------------
+                                                                     SYSTEM - SYSTEM.dat
+
+Location: C:\Windows\System32\config\SYSTEM 
+Purpose: Contains system configurations, including boot settings, time zone, and control set information.
+Key Paths and Extractable Data:
+
+SYSTEM\Select : Indicates the current, default, and last-known-good control sets
+
+SYSTEM\ControlSet001\Services :  Information about installed services and drivers 
+
+SYSTEM\ControlSet001\Control\TimeZoneInformation : Time zone settings 
+
+SYSTEM\MountedDevices : Records of mounted volumes and their identifiers 
+
+SYSTEM\ControlSet001\Control\Session Manager\Memory Management\PrefetchParameters : Prefetch settings (often manipulated by malware to evade detection) 
+
+------------------------------------------------------------------------------------------------------
+                                                                      NTUSER - NTUSER.dat
+
+Location: C:\Users\<Username>\NTUSER.dat 
+Purpose: Contains user-specific data such as recent files, browser history, and application configurations.
+Key Paths and Extractable Data: 
+
+NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs :  Recently accessed documents by file type
+
+NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU      :  List of executed commands
+
+NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU : Last visited directories 
+
+NTUSER\Software\Microsoft\Internet Explorer\TypedURLs   : URLs manually typed into Internet Explorer 
+
+NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2 : Records of removable devices connected 
+
+NTUSER\Software\Microsoft\Windows\CurrentVersion\Run : Programs set to run at startup for the specific user 
+
+NTUSER.DAT\Software\Microsoft\Windows\Shell\Bags : Shellbags record folder and directory access, especially on removable media or network shares and Useful for reconstructing file and folder browsing history, even when files are deleted 
+
+------------------------------------------------------------------------------------------------------
+                                                                    USERCLASS - USERCLASS.dat
+
+Location: C:\Users\<Username>\AppData\Local\Microsoft\Windows\
+Purpose: Stores settings related to Universal Windows Platform (UWP) applications and user-specific preferences.
+Key Paths and Extractable Data:
+
+UserClasses\{GUID}\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages : Information about installed UWP packages and Reveals information about installed modern apps and potential abuse if suspicious apps are detected
+
+------------------------------------------------------------------------------------------------------                                                                         SOFTWARE - SOFTWARE.dat
+
+Location: C:\Windows\System32\config\SOFTWARE
+Purpose: Holds system-wide software information, Windows updates, and application settings
+Key Paths and Extractable Data: 
+
+SOFTWARE\Microsoft\Windows\CurrentVersion\Run : Programs set to run at system startup. 
+
+SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows : Settings for applications launched at startup 
+
+SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall : List of installed programs 
+
+SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths : Executable paths for installed applications 
+
+------------------------------------------------------------------------------------------------------                                                                            SECURITY - SECURITY.dat
+
+Location: C:\Windows\System32\config\SECURITY
+Purpose: Contains security-related configurations, including local security policies.
+Key Paths and Extractable Data: 
+
+SECURITY\Policy\PolAdtEv : Audit policy settings and Provides information on login policies, helping to confirm whether account settings have been changed for unauthorized access. 
+
+SECURITY\Policy\PolAdtLg : Login policy settings and Provides information on login policies, helping to confirm whether account settings have been changed for unauthorized access 
+
+------------------------------------------------------------------------------------------------------ 
+                                                                             Browser Artifacts
+
+purpoes : Artifacts such as browsing history, cookies, downloads, and form data can reveal websites visited, online behavior, and interactions and Useful in tracking activity related to phishing, malware, and exfiltration attempts
+Locations:
+Chrome: C:\Users\<User>\AppData\Local\Google\Chrome\User Data\Default\
+
+Firefox: C:\Users\<User>\AppData\Roaming\Mozilla\Firefox\Profiles\     
+
+Edge: C:\Users\<User>\AppData\Local\Microsoft\Edge\User Data\Default\
+
+------------------------------------------------------------------------------------------------------
+                                                                                   Prefetch Files
+
+location : C:\Windows\Prefetch
+Key Aspects of Prefetch Analysis : 
+
+Understanding Prefetch Files: Prefetch files have the extension .pf and are named after the executable they represent, along with a hash of the path. For example, notepad.exe might have a file named NOTEPAD.EXE-XXXXXXXX.pf.
+
+Execution Times: Prefetch files store the last 8 run times, helping investigators determine how often and when a program was executed.
+
+Associated DLLs and Resources: Prefetch files contain a list of DLLs and other resources the program loaded, which can indicate dependencies and how the program interacted with the system.
+
+Size and Hashing: The size of the Prefetch file can vary with different Windows versions. Starting from Windows 8, files also include volume creation date and hashing information.
+
+How Prefetch files benefit forensic investigations: 
+1 - Program Execution Evidence : 
+Verification of Application Use: Prefetch files confirm that an application was executed on the system, which can be critical for proving that a specific program, such as malware or data-exfiltration tools, was run
+
+Event Reconstruction: By showing when a program was last accessed, Prefetch files allow analysts to place critical activities within a timeline, supporting the reconstruction of events leading up to, during, and after an incident
+
+2 - Timeline and Frequency of Access : 
+Multiple Last Run Times: Prefetch files store the last eight run times of an application, which helps in identifying patterns of activity. This is especially useful when analyzing user behavior or detecting repeated automated or malicious tasks.
+
+Establishing User Intent: Forensic analysts can use access frequency and specific timestamps to infer user intent. High-frequency executions over a short period might indicate malware behavior, whereas infrequent runs could suggest occasional, manual usage.
+
+3 - Resource and Dependency Analysis
+DLL and File Access Tracking: Prefetch files log DLLs and files accessed by an application, which is useful for understanding the interactions and dependencies involved. This is particularly helpful in detecting unexpected or suspicious libraries that may be linked to malicious code
+
+Attack Path Tracing: By examining associated files and libraries, analysts can trace how an application might have propagated or interacted with the system, aiding in mapping an attacker’s methodology.
+
+4 - Indicating Persistence and Malware Activity : 
+Malware Detection: Prefetch analysis can reveal hidden or unusual executables that load at system startup or under specific conditions, indicating persistent malware. Malware running from unusual paths (like temporary or user folders) can be detected through Prefetch, helping pinpoint unauthorized software.
+
+Startup Behavior Analysis: By analyzing Prefetch files in conjunction with startup folders and registry keys, analysts can identify suspicious programs set to run automatically, which is a common persistence tactic in malware infections.
+
+
+
+
+
+

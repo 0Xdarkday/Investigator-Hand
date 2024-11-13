@@ -1,0 +1,328 @@
+                                                                               List All Indexes : 
+ | eventcount summarize=false index=* 
+ | stats count by index
+
+ | rest /services/data/indexes
+ | table title
+------------------------------------------------------------------------------------------------------
+                                                                        Identify Available Sourcetypes: 
+  | metadata type=sourcetypes
+  | table sourcetype, totalCount
+
+ | metadata type=sources
+ | table source totalCount firstTime lastTime
+------------------------------------------------------------------------------------------------------
+                                                                         Explore the Fields in Your Data: 
+ | eventcount summarize=false index=*
+ | fields *
+ | stats count by sourcetype
+
+Search for Specific Event Types (e.g., Security Logs): 
+ index=windows sourcetype=WinEventLog:Security
+ | stats count by EventCode
+ 
+ index="botsv1" sourcetype=WinEventLog
+ | stats count by EventCode,source
+ | rename count as total_count
+ | sort - total_count
+
+Check for Sysmon Logs:
+ index=sysmon sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+ | stats count by EventCode
+------------------------------------------------------------------------------------------------------
+                                                                            List Data Sources by Host:
+ | metadata type=hosts
+ | table host, totalCount, firstTime, lastTime
+
+------------------------------------------------------------------------------------------------------
+                                                                              Network Connections:
+ 
+ Event ID 5156: A network connection was allowed - It shows details about the process, protocol, and addresses involved in  the connection
+Event ID  3:   A network activity such as connection  attempts could involve TCP-UDP    
+ 
+ index=main host="HOSTNAME" sourcetype="WinEventLog:Microsoft-Windows-Security-Auditing" EventCode=5156 
+ "DestinationIPAddress"="SUSPICIOUS_IP"
+ | table _time, ComputerName, SourceIPAddress, DestinationIPAddress, DestinationPort
+
+Filter by Process Name (to track specific processes)
+index="" sourcetype= EventCode=3
+| search ProcessName="cmd.exe" OR ProcessName="powershell.exe"
+
+Filter by Destination IP (to track connections to suspicious IPs):
+index="" sourcetype= EventCode=3
+| search dest_ip="x.x.x.x"
+
+------------------------------------------------------------------------------------------------------
+                                                                    Identifying Brute Force Attacks: 
+ index=main host="HOSTNAME"  sourcetype=stream:http imreallynotbatman.com http_method=POST
+ | stats count BY src, form_data, status
+
+index=<your_index> sourcetype=stream:http uri_path IN ("/wp-admin", "/admin", "/login", "/shell.php")
+
+index=<your_index> sourcetype=stream:http uri_query="*cmd=*"
+
+index=<your_index> sourcetype=stream:http user_agent IN ("python*", "curl*", "Wget*")
+
+------------------------------------------------------------------------------------------------------
+                                                                        Detecting File Uploads:
+ index="" dest_ip=<web server's IP address> sourcetype="stream:http" POST  *.exe
+
+ index=windows sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=3
+ | stats count by SourceIp, DestinationIp, DestinationPort
+ | where DestinationPort in (22, 3389, 445, 80, 443)
+------------------------------------------------------------------------------------------------------
+                                                                           LOGON activity : 
+
+ Event ID 4624 - Successful logon. Track specific account types (e.g., admin accounts) and abnormal patterns.
+Event ID 4648 - Logon using explicit credentials. Useful for tracking interactive logon activities.
+Event ID 4672 - Special privileges assigned to a new logon (e.g., admin-level permissions).
+
+ index=windows sourcetype=WinEventLog:Security EventCode=4624 LogonType=3 OR LogonType=10
+
+ index=windows sourcetype=WinEventLog:Security EventCode=4625 
+ | stats count by src_ip, user, host 
+ | where count > 10
+
+ index=windows sourcetype=WinEventLog:Security EventCode=4625
+ | stats count by Account_Name, Ip_Address, Logon_Type
+ | where count > 5
+------------------------------------------------------------------------------------------------------
+                                                             Detect Changes to High-Value Accounts:
+
+Event ID 4738, "A user account was changed," is useful for detecting modifications to user accounts, which could indicate privilege escalation or unauthorized account changes
+Event ID 4724 - Detects attempts to reset an account’s password.
+Event ID 4720 - Account creation.
+Event ID 4732 - Addition of account to a privileged group.
+Event ID 4726 - Account deletion.
+Event ID 4724 - Password reset attempt
+
+index=your_index source="wineventlog:security" EventCode=4738 Target_Account_Name IN ("admin", "administrator", "domain_admin")
+| stats count by Target_Account_Name, Subject_Account_Name
+
+dentify Unauthorized Privilege Escalation Attempts:If certain accounts should not have privileges changed, use this to identify unusual changes
+index=your_index source="wineventlog:security" EventCode=4738 Privileges="SeDebugPrivilege"
+| stats count by Target_Account_Name, Privileges
+
+Correlate with Event ID 4624 (Logon) for Suspicious Account Modifications:This identifies instances where an account was modified (Event ID 4738) and then logged on (Event ID 4624) within a short period, which could indicate misuse of the modified account
+
+index=your_index source="wineventlog:security" (EventCode=4738 OR EventCode=4624)
+| transaction Target_Account_Name maxspan=5m
+| search EventCode=4738 AND EventCode=4624
+| table _time, Target_Account_Name, Subject_Account_Name, EventCode
+
+
+Password Reset for Critical Accounts:
+
+index=your_index source="wineventlog:security" (EventCode=4724 OR EventCode=4738) Target_Account_Name IN ("admin", "administrator", "domain_admin")
+| stats count by _time, EventCode, Target_Account_Name, Subject_Account_Name
+| where count > 1
+| table _time, EventCode, Target_Account_Name, Subject_Account_Name
+
+
+------------------------------------------------------------------------------------------------------
+                                                                 Privilege Escalation Detection:
+
+Event ID 4672 - Privileges assigned during logon.
+Event ID 4673 - A privileged service was called.
+Event ID 4688 - Process creation (with command-line logging enabled). Look for execution of tools like cmd.exe, powershell.exe with privilege escalation
+
+ index=windows (EventCode=4672 OR EventCode=4648 OR EventCode=4697)
+ | stats count by Account_Name, Privilege_List, Target_Server
+
+ index=windows EventCode=4688 New_Process_Name="*powershell.exe*"
+ | stats count by New_Process_Name, Parent_Process_Name, Account_Name
+
+ index=main host="HOSTNAME" source="WinEventLog:Microsoft-Windows-PowerShell/Operational" 
+ sourcetype=WinEventLog TaskCategory="Execute a Remote Command"
+ | table _time, ComputerName, User, CommandLine
+ 
+ index=main host="HOSTNAME" sourcetype="WinEventLog:Microsoft-Windows-Sysmon/Operational" 
+ EventCode=1 ParentCommandLine="*whoami.exe*"
+ | stats count by ParentImage, ParentCommandLine, User
+
+ index=main host="HOSTNAME" sourcetype="WinEventLog:Microsoft-Windows-Sysmon/Operational" 
+ (Image="*powershell.exe" OR Image="*cmd.exe")
+ | stats count by Image, CommandLine, User
+
+Filter by Specific Privileges:
+If you're looking to track the adjustment of specific critical privileges (e.g., SeDebugPrivilege), you can filter by the PrivilegeList field:
+index="" sourcetype=WinEventLog:Security EventCode=4703
+| search PrivilegeList="SeDebugPrivilege" OR PrivilegeList="SeTakeOwnershipPrivilege"
+Filter by Target User
+index="" sourcetype=WinEventLog:Security EventCode=4703
+| search TargetUserName="username"
+
+index= host="" "*.exe"
+| dedup ParentCommandLine, CommandLine, ParentImage, User, Hashes
+| rex field=Hashes "(?<SHA256>[A-Fa-f0-9]{64})"
+| stats count by ParentCommandLine, CommandLine, ParentImage, User, SHA256
+
+------------------------------------------------------------------------------------------------------
+                                                                Monitoring Malicious File Execution: 
+
+ index=main host="HOSTNAME" source="WinEventLog:Microsoft-Windows-Sysmon/Operational" 
+ sourcetype=WinEventLog Image="C:\\Path\\to\\file.exe"
+ | table _time, ComputerName, User, Image, CommandLine
+
+ index=main sourcetype="WinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=1 
+ | table _time, ComputerName, Image, CommandLine, ParentImage, User
+
+index= host="" "*.exe"
+| dedup ParentCommandLine, CommandLine, ParentImage, User, Hashes
+| rex field=Hashes "(?<SHA256>[A-Fa-f0-9]{64})"
+| stats count by ParentCommandLine, CommandLine, ParentImage, User, SHA256
+
+------------------------------------------------------------------------------------------------------
+                                                                               Scheduled Task : 
+Scheduled Task creation : 
+ index=windows EventCode=4698
+ | stats count by Task_Name, SubjectUserName, SubjectDomainName, TaskContent, ComputerName
+
+Scheduled Task Deleted:
+ index=windows EventCode=4699
+ | stats count by Task_Name, SubjectUserName, SubjectDomainName, ComputerName
+ 
+Scheduled Task Enabled: 
+ index=windows EventCode=4700
+ | stats count by Task_Name, SubjectUserName, SubjectDomainName, ComputerName
+
+Scheduled Task Updated:
+ index=windows EventCode=4702
+ | stats count by Task_Name, SubjectUserName, SubjectDomainName, TaskContent, ComputerName
+------------------------------------------------------------------------------------------------------
+                                                                     Persistence Registry Detection:
+   
+    event ID 4656: A handle to an object was requested
+    Event ID 4657: A registry value was modified
+    Event ID 4658: he handle to an object was closed
+    Event ID 4660: An object was deleted
+    Event ID 4663: An attempt was made to access an object
+    Event ID 13:   identifies Registry value modifications
+    Event ID 12:   represents a registry object creation or deletion, this means creating a key or deleting a key
+
+Registry Value Modified::
+index=wineventlog EventCode=4657
+ | table _time, Account_Name, Process_Name, Target_Object
+ | where Target_Object IN ("HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                          "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                          "HKLM\\SYSTEM\\CurrentControlSet\\Services\\*")
+
+ index= sourcetype="winregistry" 
+ | stats count by registry_type registry_path,registry_value_data 
+ | dedup registry_type registry_path,registry_value_data
+
+Handle to an Object Closed::
+ index= EventCode=4658
+ | table _time, Account_Name, Process_Name, Object_Name
+ | where Object_Name IN ("HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                        "HKLM\\SYSTEM\\CurrentControlSet\\Services\\*")
+
+Buffer Overflow Detection:
+  index=windows (EventCode=1000 OR EventCode=1001)
+  | search (Message="buffer overflow" OR Message="access violation")
+  | stats count by Source_Name, Account_Name, Computer_Name
+
+Object Deleted::
+ index=wineventlog EventCode=4660
+ | table _time, Account_Name, Process_Name, Object_Name
+ | where Object_Name IN ("HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                        "HKLM\\SYSTEM\\CurrentControlSet\\Services\\*")
+Registry Value Modified via System Integrity::
+ index=wineventlog EventCode=13
+ | table _time, Account_Name, Process_Name, Target_Object
+ | where Target_Object IN ("HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                          "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                          "HKLM\\SYSTEM\\CurrentControlSet\\Services\\*")
+
+ index=botsv1 sourcetype="WinRegistry" action="modified"
+
+Registry Object Creation/Deletion::
+ index=wineventlog EventCode=12
+ | table _time, Account_Name, Process_Name, Object_Name
+ | where Object_Name IN ("HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+                        "HKLM\\SYSTEM\\CurrentControlSet\\Services\\*")
+
+------------------------------------------------------------------------------------------------------
+                                                                          PowerShell Detection:
+
+PowerShell Script Block Logging: 
+ index=windows EventCode=4103
+ | search ScriptBlockText="*encodedcommand*" OR ScriptBlockText="*Invoke-*"
+ | stats count by ScriptBlockText, User, ComputerName
+
+PowerShell Script Block Logging (De-obfuscated): 
+ index=windows EventCode=4104
+ | search ScriptBlockText="*Invoke-*" OR ScriptBlockText="*Add-MpPreference*" 
+ | stats count by ScriptBlockText, User, ComputerName
+
+ index=windows sourcetype=XmlWinEventLog:Microsoft-Windows-PowerShell/Operational EventCode=4104
+ | search "Get-NetIPAddress" OR "Get-Process" OR "Get-Service" OR "Invoke-WebRequest"
+
+------------------------------------------------------------------------------------------------------
+                                                          Lateral Movement & Pivot Detection: 
+Event ID 4624: Successful logon
+Event ID 4648 (Explicit Credential Logon)
+Event ID 4672: Special privileges assigned to a new logon
+Event ID 5140: Network share object access
+Event ID 7045: A new service was installed
+
+index=wineventlog (EventCode=4624 OR EventCode=4625)
+| where (Logon_Type=3 OR Logon_Type=10) AND (Account_Name!="ANONYMOUS LOGON")
+| stats count by Account_Name, Workstation_Name, Logon_Type
+| where count > 10
+| table Account_Name, Workstation_Name, Logon_Type, count
+
+index=windows EventCode=4624 OR EventCode=4672 OR EventCode=5140 OR EventCode=7045
+| stats count by Account_Name, ComputerName, EventCode, Logon_Type
+| where Logon_Type = 10 OR Logon_Type = 3
+
+ index=windows (EventCode=4624 OR EventCode=4648) Logon_Type=3 OR Logon_Type=10
+ | stats count by Account_Name, Workstation_Name, Source_Network_Address
+ | where Account_Name!="*admin*"
+Detect Explicit Credential Usage for Remote Execution (PsExec, WMI, RunAs):
+
+ index=wineventlog EventCode=4648
+ | stats count by Account_Name, Workstation_Name, Target_Server_Name
+ | where Target_Server_Name!="localhost"
+ | table Account_Name, Workstation_Name, Target_Server_Name, count
+
+------------------------------------------------------------------------------------------------------
+                                                               Golden Ticket Attack Detection: 
+Event ID 4768: Kerberos authentication ticket request (TGT)
+Event ID 4769: Service ticket request (TGS)
+Event ID 4770: Kerberos authentication ticket renewal
+Event ID 4624: Successful logon with Kerberos
+Event ID 4672: Special privileges assigned to new logon
+
+ index=windows EventCode=4769 OR EventCode=4768 OR EventCode=4624
+ | where TicketOptions="0x40810000" OR (LogonType=3 OR LogonType=10)
+ | stats count by Account_Name, IPAddress, Service_Name
+ | `drop_dm_object_name("All_Tickets")`
+
+------------------------------------------------------------------------------------------------------                                                                   Kerberoasting Attack Detection : 
+ Event ID 4769: Kerberos Service Ticket Request (TGS)
+ Event ID 4624 (Successful Account Logon):
+
+index=wineventlog EventCode=4769
+| where (Ticket_Encryption_Type="0x17") AND (Logon_Type="3")
+| stats count by UserName, ServiceName, ClientAddress
+| where count > 10
+| table UserName, ServiceName, ClientAddress, count
+
+index=wineventlog EventCode=4769
+| stats count by UserName, ServiceName
+| where count > 20
+| table UserName, ServiceName, count
+
+index=wineventlog EventCode=4769
+| where Ticket_Encryption_Type="0x17"
+| stats count by UserName, ServiceName, Ticket_Encryption_Type
+| table UserName, ServiceName, Ticket_Encryption_Type, count
+
+
+
+
+

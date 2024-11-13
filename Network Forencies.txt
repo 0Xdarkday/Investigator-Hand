@@ -1,0 +1,90 @@
+                                                                                    IP Filters 
+
+ip.addr == 192.168.1.1 : Specific IP To filter packets from or to a specific IP 
+ip.src == 192.168.1.1   : Source or Destination IP Specify if you're interested in packets from a source or to a destination.
+ip.dst == 192.168.1.1
+
+------------------------------------------------------------------------------------------------------  
+                                                                         Port-Based Filters
+
+tcp.port == 80 : HTTP Traffic (Port 80) Often used to identify cleartext web traffic 
+tcp.port == 443 : HTTPS Traffic (Port 443) Useful for tracking encrypted web traffic. 
+udp.port == 53  : DNS Traffic (Port 53) DNS queries and responses, often targeted in DNS tunneling attacks 
+
+------------------------------------------------------------------------------------------------------ 
+                                                                          Protocol-Specific Filters 
+
+dns : DNS Traffic &Track domain name resolutions 
+
+dns.qry.name contains ".onion" || dns.qry.name contains "suspiciousdomain"  :  Suspicious Domain Lookups & Look for uncommon or long domain names, which can indicate DNS tunneling.
+
+http || tls : HTTP and HTTPS Monitor both HTTP and HTTPS traffic 
+
+ftp : FTP Traffic Often used by attackers for data exfiltration. 
+ftp.request.command == "STOR" || ftp.request.command == "RETR"  : FTP File Transfers & Detect uploads and downloads
+
+icmp : ICMP Traffic Useful for identifying ping sweeps or DoS attacks 
+icmp.type == 8
+
+smb || smb2  : Often used by attackers for lateral movement and Capture all SMB communications
+smb.cmd == 0x2e : SMB File Access & Track file access events on SMB shares
+
+kerberos : Kerberos Traffic Filter for all Kerberos authentication traffic
+
+ldap : LDAP Traffic: Capture LDAP protocol traffic 
+
+------------------------------------------------------------------------------------------------------
+                                                                         Malicious Traffic Indicators
+
+http.request.method == "POST" || http.request.method == "PUT" : Suspicious HTTP Requests
+
+http.host contains "malicious-domain.com" || ip.addr == <ip>  : Known Malicious Domains or IPs Check against known threat indicators
+
+ssl.handshake && !ssl.data : TLS Handshake with No Data Transfer & Possible indicator of C2 communication. 
+
+------------------------------------------------------------------------------------------------------
+                                                                     Analyzing Payloads and Content
+http contains "password" : Search for Specific Content in HTTP & Look for keywords in HTTP payloads (e.g., keywords like "password"). 
+
+frame contains "Basic " : Look for Base64 Encoded Content & Commonly used in data exfiltration. 
+
+http.content_type contains "application/x-msdownload"  : Track Suspicious Downloads & Monitor file downloads, particularly executable files.
+
+http.request.uri contains "../" || http.request.uri contains "UNION" : SQL Injection or Directory Traversal & Look for special characters in HTTP requests
+
+http.user_agent contains "MaliciousAgent" : Check for Suspicious User-Agent Strings & Custom User-Agents may indicate malware; filter 
+
+------------------------------------------------------------------------------------------------------
+                                                                             searching for specific file  
+
+http.content_disposition contains "attachment;filename=" 
+http.request.uri contains ".exe" || http.request.uri contains ".zip" 
+tcp contains "filename" 
+frame contains "*.exe"
+
+------------------------------------------------------------------------------------------------------
+                                                                    Detecting Anomalous Connections
+
+tcp.analysis.flags && tcp.flags.ack==1 && tcp.stream eq 0 : Identify Long-Lived Connections & Identify persistent connections.
+tcp.port > 1024  : Unusual Ports: Filter for non-standard ports
+
+------------------------------------------------------------------------------------------------------
+                                                                               Kerberos Traffic
+
+kerberos.msg_type == 10  : Kerberos TGT (Ticket Granting Ticket) Requests: Useful to spot initial authentication 
+kerberos.msg_type == 12  : Kerberos TGS (Ticket Granting Service) Requests: Commonly exploited in Kerberoasting
+
+kerberos.error_code   : Suspicious Kerberos Errors: Errors may indicate failed attempts or misconfigurations that attackers exploi
+
+kerberos.Ticket.expiry_date < kerberos.Ticket.issue_date : Filter for Golden Ticket Attack Indicators: Look for unusual ticket lifetimes or patterns in TGT requests.
+
+
+------------------------------------------------------------------------------------------------------ 
+                                                                        LDAP Traffic (Active Directory)
+
+ldap :  LDAP Traffic Capture LDAP protocol traffic 
+ldap.filter contains "(objectclass=user)"  : Filter for Specific LDAP Queries & Check for abnormal queries that might indicate reconnaissance
+
+------------------------------------------------------------------------------------------------------
+  
+
